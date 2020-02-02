@@ -1,0 +1,174 @@
+<html lang="en">
+<head>
+    <title>Controller</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .screen {
+            display: none;
+            width: calc(100% - 24px);
+            height: calc(100% - 24px);
+            padding: 12px;
+            background-color: #542e0c;
+        }
+
+        button {
+            border: 0;
+            border-radius: 0.25rem;
+            color: white;
+            font-family: system-ui, sans-serif;
+            font-size: 1rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-decoration: none;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-target-release {
+            background: #1E88E5;
+        }
+
+        .btn-target-release:active, .btn-target-release.active {
+            background: #812924;
+        }
+
+        .btn-target-press {
+            background: #5d611a;
+        }
+
+        .btn-target-press:active, .btn-target-press.active {
+            background: #5b8f40;
+        }
+
+        #upButton, #downButton, #rightButton, #leftButton {
+            width: 33.33%;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            min-height: 33%;
+            align-items: stretch;
+        }
+
+        #middleRow {
+            justify-content: space-between;
+        }
+
+        .row:not(#middleRow) {
+            justify-content: center;
+        }
+
+        #readyButton {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #1E88E5;
+        }
+    </style>
+</head>
+<body>
+<div class="screen" id="stateMenu">
+    <button type="button" id="readyButton" class="btn">Click For Ready</button>
+</div>
+<div class="screen" id="stateGame">
+    <div class="row">
+        <button type="button" id="upButton" class="btn-target-release btn" data-action="up">W</button>
+    </div>
+    <div class="row" id="middleRow">
+        <button type="button" id="leftButton" class="btn-target-release btn" data-action="left">A</button>
+        <button type="button" id="rightButton" class="btn-target-release btn" data-action="right">D</button>
+    </div>
+    <div class="row">
+        <button type="button" id="downButton" class="btn-target-release btn" data-action="down">S</button>
+    </div>
+</div>
+<script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.7.0.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        changeScreen('Menu');
+
+        var air_console = new AirConsole();
+        var state = {ready: false, screen: 'Menu'};
+        var button_state = {left: 0, right: 0, up: 0, down: 0};
+        document.querySelectorAll('.btn').forEach(function (actionButton) {
+            var action = actionButton.getAttribute('data-action');
+            actionButton.addEventListener('touchstart', function () {
+                actionButton.classList.add('active');
+                button_state[action] = 1;
+                sendButtonState();
+            });
+            actionButton.addEventListener('touchend', function () {
+                actionButton.classList.remove('active');
+                button_state[action] = 0;
+                sendButtonState();
+            });
+        });
+        air_console.onMessage = function (from, data) {
+            if (from === AirConsole.SCREEN && data.type === 'state') {
+                changeScreen(data.state);
+            }
+            if (from === AirConsole.SCREEN && data.type === 'tour') {
+                changeButtonStates(data.payload);
+            }
+        };
+
+        document.getElementById('readyButton').addEventListener('touchend', function () {
+            if (state.screen === 'Menu') {
+                state.ready = !state.ready;
+                this.innerText = state.ready ? 'Click For NOT' : "Click For Ready";
+                air_console.message(AirConsole.SCREEN, {type: 'state', ready: state.ready});
+            }
+        });
+
+        function changeScreen(state) {
+            var screens = document.querySelectorAll('.screen');
+            screens.forEach(function (screen) {
+                screen.style.display = 'none';
+            });
+            var activeScreen = document.getElementById('state' + state);
+            if (!activeScreen) {
+                document.getElementById('stateMenu').style.display = 'block';
+            } else {
+                activeScreen.style.display = 'block';
+            }
+        }
+
+        function sendButtonState() {
+            var payload = {type: 'button', payload: button_state};
+            air_console.message(AirConsole.SCREEN, payload);
+        }
+
+        function changeButtonStates(payload) {
+            var up_button = document.querySelector('#upButton');
+            var down_button = document.querySelector('#downButton');
+            var left_button = document.querySelector('#leftButton');
+            var right_button = document.querySelector('#rightButton');
+
+            up_button.classList.remove('btn-target-release');
+            up_button.classList.remove('btn-target-press');
+            up_button.classList.add(payload.up ? 'btn-target-press' : 'btn-target-release');
+
+            down_button.classList.remove('btn-target-release');
+            down_button.classList.remove('btn-target-press');
+            down_button.classList.add(payload.down ? 'btn-target-press' : 'btn-target-release');
+
+            left_button.classList.remove('btn-target-release');
+            left_button.classList.remove('btn-target-press');
+            left_button.classList.add(payload.left ? 'btn-target-press' : 'btn-target-release');
+
+            right_button.classList.remove('btn-target-release');
+            right_button.classList.remove('btn-target-press');
+            right_button.classList.add(payload.right ? 'btn-target-press' : 'btn-target-release');
+        }
+    });
+</script>
+</body>
+</html>
