@@ -19,7 +19,6 @@ public class Air : MonoBehaviour
     private int _currentTour = 0;
     private int lastSecond = 0;
     private int secondsPassed = 0;
-    private float timer = 0.0f;
     private float totalPercentage = 0;
     private bool gameStarted = false;
     private Parent _parent;
@@ -101,8 +100,7 @@ public class Air : MonoBehaviour
             return;
         }
 
-        timer += Time.deltaTime;
-        int seconds = (int) timer % 60;
+        int seconds = (int) Time.timeSinceLevelLoad % 60;
         if (this.lastSecond != seconds)
         {
             this.secondsPassed++;
@@ -184,6 +182,8 @@ public class Air : MonoBehaviour
     private void endTour()
     {
         this.secondsPassed = 0;
+        this.lastSecond = (int) Time.timeSinceLevelLoad % 60;
+
         foreach (var player in _playerDeviceIdList)
         {
             var tourIndex = _playerTours.FindIndex(t => t.DeviceID == player && t.Tour == _currentTour);
