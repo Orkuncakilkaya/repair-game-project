@@ -72,6 +72,28 @@
             height: 100%;
             background-color: #1E88E5;
         }
+
+        #stateGameOver, #stateGameOver * {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .game-over-text {
+            width: 100%;
+            height: 56px;
+            margin: 0 auto;
+            font-weight: bold;
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+
+        .game-over-title {
+            width: 100%;
+            height: 56px;
+            margin: 0 auto;
+            background-color: #000 !important;
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
@@ -89,6 +111,10 @@
     <div class="row">
         <button type="button" id="downButton" class="btn-target-release btn" data-action="down">S</button>
     </div>
+</div>
+<div class="screen" id="stateGameOver">
+    <div class="game-over-title">Game Over!</div>
+    <div class="game-over-text"></div>
 </div>
 <script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.7.0.js"></script>
 <script>
@@ -117,6 +143,9 @@
             }
             if (from === AirConsole.SCREEN && data.type === 'tour') {
                 changeButtonStates(data.payload);
+            }
+            if (data.score) {
+                document.querySelector('.game-over-text').innerText = 'Total Score: %' + data.score.toFixed(2);
             }
         };
 
